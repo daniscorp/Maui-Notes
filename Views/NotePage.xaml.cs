@@ -1,0 +1,56 @@
+﻿namespace Notes.Views;
+
+[QueryProperty(nameof(ItemId), nameof(ItemId))]
+public partial class NotePage : ContentPage
+{
+    string _fileName = Path.Combine(FileSystem.AppDataDirectory, "notes.txt");
+
+    public string ItemId
+    {
+        set { LoadNote(value); }
+    }
+
+    public NotePage()
+	{
+		InitializeComponent();
+
+        string appDataPath = FileSystem.AppDataDirectory;
+        string randomFile = $"{Path.GetRandomFileName()}.notes.txt";
+
+        LoadNote(Path.Combine(appDataPath, randomFile));
+	}
+
+    async void SaveButton_Clicked(System.Object sender, System.EventArgs e)
+    {
+        if (BindingContext is Models.Note note)
+        {
+            File.WriteAllText(note.Filename, TextEditor.Text);
+        }
+        await Shell.Current.GoToAsync("..");
+    }
+
+    async void DeleteButton_Clicked(System.Object sender, System.EventArgs e)
+    {
+        if (BindingContext is Models.Note note)
+        {
+            if (File.Exists(note.Filename))
+                File.Delete(note.Filename);
+        }
+
+
+        await Shell.Current.GoToAsync("..");
+    }
+
+private void LoadNote(string fileName)
+    {
+        Models.Note noteModel = new Models.Note();
+        noteModel.Filename = fileName;
+
+        if (File.Exists(fileName))
+        {
+            noteModel.Date = File.GetCreationTime(fileName);
+            noteModel.Text = File.ReadAllText(fileName);
+        }
+        BindingContext = noteModel;
+    }
+}
